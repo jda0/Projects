@@ -5,7 +5,6 @@
 *.pydevproject
 .project
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak
@@ -42,8 +41,6 @@ local.properties
 *.sln.docstates
 
 # Build results
-[Dd]ebug/
-[Rr]elease/
 *_i.c
 *_p.c
 *.ilk
@@ -93,11 +90,7 @@ DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
 
-# Click-Once directory
-publish
-
 # Others
-[Bb]in
 [Oo]bj
 sql
 TestResults
@@ -137,7 +130,6 @@ Desktop.ini
 *.egg
 *.egg-info
 dist
-build
 eggs
 parts
 bin
