@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<style type="text/css">
+			body {
+				background: #00a651;
+			}
+			#z {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				margin-left: -240px;
+				margin-top: -160px;
+				background: #39b54a;
+			}
+		</style>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function (i ,j){
+				var _nx = []; // nucleus X pos.
+				var _ny = []; // nucleus Y pos.
+				var _ex = []; // electron X pos.
+				var _ey = []; // electron Y pos.
+				var _ea = []; // electron angle
+
+				var _nr = 10; // neutron radius
+				var _er = 5;  // electron radius
+				var _ar = 40; // atom radius
+
+				var _l = 1;
+				var _s = 0;
+				var a = false;
+
+				function isCollision (x1, x2, y1, y2, r1, r2) {
+					var dx = x2 - x1;
+					var dy = y2 - y1;
+					var r  = r1 + r2;
+
+					return ((dx * dx) + (dy * dy) < (r * r));
+				}
+				function drawCircle (x, y, r, canvas, fill, stroke, color) {
+					if (canvas && (fill || stroke)) {
+						var z = $(canvas)[0].getContext('2d');
+						z.fillStyle = color;
+						z.strokeStyle = color;
+						z.beginPath();
+						z.arc(x, y, r, 2 * Math.PI, false);
+						if (fill)
+							z.fill();
+						if (stroke)
+							z.stroke();
+					}
+				}
+
+				function drawAtom (nx, ny, ex, ey, canvas) {
+					drawCircle(nx, ny, _nr, canvas, true, true, "#fff"); //nucleus
+					drawCircle(ex, ey, _er, canvas, true, true, "#fff"); //electron
+					drawCircle(nx, ny, _ar, canvas, false, true, "#00a651"); // electron ring
+				}
+
+				function getIPolarX (x, r, a) {
+					return x + r * Math.sin(a);
+				}
+				function getIPolarY (y, r, a) {
+					return y + r * Math.cos(a);
+				}
+
+				function updateElectronAngle () {
+					$.each(_ea, function (i, j) {
+						_ea[i] += _l / 45;
+					});
+				}
+
+				function updateElectronPosition () {
+					$.each(_ea, function (i, j) {
+						_ex[i] = getIPolarX(_nx[i], _ar, _ea[i]);
+						_ey[i] = getIPolarY(_ny[i], _ar, _ea[i]);
+					});
+				}
+
+				function anyCollisions () {
+					var c = false;
+					if (_ex.length > 1) {
+						$.each(_ex, function (i, j) {
+							for (var k = 0; k < i; k++)
+								if (isCollision(_ex[i], _ex[k], _ey[i], _ey[k], _er, _er))
+									c = true;
+						});
+					}
+					return c;
+				}
+
+				function drawAllAtoms (canvas) {
+					if (canvas) {
+						$.each(_nx, function (i, j) {
+							drawAtom(_nx[i], _ny[i], _ex[i], _ey[i], canvas)
+						});
+					}
+				}
+
+				function gameLoop () {
+					if (a)
+					{
+						clear("#z")
+						drawAllAtoms("#z");
+						if (anyCollisions())
+							gameOver("#z");
+						updateElectronAngle();
+						updateElectronPosition();
+					}
+				}
+
+				function menuShow (canvas) {
+					if (canvas) {
+						var name = "tau";
+						var help = "click to add an atom. don't let electrons collide";
+						var nf = "bold 60px/60px 'Myriad Pro', sans-serif";
+						var hf = "20px/20px 'Myriad Pro', sans-serif";
+
+						var z = $(canvas)[0].getContext('2d');
+
+						clear(canvas);
+
+						z.fillStyle = "fff";
+						z.textAlign = "center";
+						z.font = nf;
+						z.fillText(name, 240, 160);
+						z.font = hf;
+						z.fillText(help, 240, 280);
+					}
+				}
+
+				function gameOver (canvas) {
+					a = false;
+					s = _s;
+					flushAtoms();
+
+					if (canvas) {
+						var message = "game over";
+						var help = "score: " + s + ". click to try again."
+						var mf = "bold 60px/60px 'Myriad Pro', sans-serif";
+						var hf = "20px/20px 'Myriad Pro', sans-serif";
+
+						var z = $(canvas)[0].getContext('2d');
+
+						clear("#z");
+
+						z.fillStyle = "fff";
+						z.textAlign = "center";
+						z.font = mf;
+						z.fillText(message, 240, 160);
+						z.font = hf;
+						z.fillText(help, 240, 280);
+					}
+				}
+
+				function clear (canvas) {
+					if (canvas) {
+						var z = $(canvas)[0].getContext('2d');
+						z.clearRect(0, 0, 480, 320);
+					}
+				}
+
+				function flushAtoms () {
+					_nx = [];
+					_ny = [];
+					_ex = [];
+					_ey = [];
+					_ea = [];
+
+					l = 1;
+					_s = 0;
+				}
+
+				$("#z").click(function(e) {
+					var x = e.pageX - this.offsetLeft;
+					var y = e.pageY - this.offsetTop;
+					_nx.push(x);
+					_ny.push(y);
+					_ea.push(0);
+					_ex.push(getIPolarX(x, _ar, 0));
+					_ey.push(getIPolarY(y, _ar, 0));
+
+					a = true;
+					_l += .1;
+					_s ++;
+				});
+
+				menuShow("#z");
+
+				setInterval(gameLoop, 50);
+			});
+		</script>
+	</head>
+	<body>
+		<canvas id="z" width="480" height="320"></canvas>
+	</body>
+</html>
